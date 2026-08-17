@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // @ts-ignore: Adding allowedDevOrigins to fix HMR cross-origin block on local network
-  allowedDevOrigins: ['192.168.0.103'],
+  allowedDevOrigins: ['192.168.0.103', 'localhost', '127.0.0.1'],
   output: 'standalone',
   experimental: {
     serverActions: {
@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co https://*.googleapis.com wss://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co https://*.googleapis.com wss://*.supabase.co ws://localhost:* ws://127.0.0.1:* ws://192.168.*:*",
               "frame-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
