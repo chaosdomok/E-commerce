@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // @ts-ignore: Adding allowedDevOrigins to fix HMR cross-origin block on local network
   allowedDevOrigins: ['192.168.0.103'],
+  output: 'standalone',
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

@@ -36,8 +36,8 @@ export function NotificationDropdown() {
     setIsLoading(true);
     const result = await getUserNotifications();
     if (result.notifications && Array.isArray(result.notifications)) {
-      setNotifications(result.notifications);
-      setUnreadCount(result.notifications.filter((n) => !n.is_read).length);
+      setNotifications(result.notifications as unknown as Notification[]);
+      setUnreadCount((result.notifications as unknown as Notification[]).filter((n) => !n.is_read).length);
     }
     setIsLoading(false);
   };
