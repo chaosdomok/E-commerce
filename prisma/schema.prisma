@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookCondition {
+  NEW
+  VERY_GOOD
+  GOOD
+  ACCEPTABLE
+}
+
+enum BookStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
+  FAILED
+}
+
+model User {
+  /// UUID supplied by Supabase Auth (`auth.users.id`).
+  id            String   @id @db.Uuid
+  email         String   @unique @db.VarChar(320)
+  role          Role     @default(USER)
+  addedBooks    Book[]   @relation("BookAddedByAdmin")
+  reservedBooks Book[]   @relation("BookReservedBy")
+  orders        Order[]
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model Book {
+  id                String        @id @default(uuid()) @db.Uuid
+  title             String        @db.VarChar(500)
+  author            String        @db.VarChar(320)
+  isbn              String        @db.VarChar(17)
+  condition         BookCondition
+  price             Decimal       @db.Decimal(10, 2)
+  currency          String        @default("PLN") @db.Char(3)
+  status            BookStatus    @default(AVAILABLE)
+  originalOwnerName String        @map("original_owner_name") @db.VarChar(160)
+  addedByAdminId    String        @map("added_by_admin_id") @db.Uuid
+  reservedByUserId  String?       @map("reserved_by_user_id") @db.Uuid
+  reservedUntil     DateTime?     @map("reserved_until") @db.Timestamptz(6)
+  addedByAdmin      User          @relation("BookAddedByAdmin", fields: [addedByAdminId], references: [id], onDelete: Restrict)
+  reservedByUser    User?         @relation("BookReservedBy", fields: [reservedByUserId], references: [id], onDelete: SetNull)
+  orders            Order[]
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, reservedUntil])
+  @@index([isbn])
+  @@index([title])
+  @@index([addedByAdminId])
+  @@map("books")
+}
+
+model Order {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  bookId          String      @map("book_id") @db.Uuid
+  stripeSessionId String?     @map("stripe_session_id") @db.VarChar(255)
+  status          OrderStatus @default(PENDING)
+  amount          Decimal     @db.Decimal(10, 2)
+  currency        String      @default("PLN") @db.Char(3)
+  expiresAt       DateTime?   @map("expires_at") @db.Timestamptz(6)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  book            Book        @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, status])
+  @@index([bookId, status])
+  @@index([stripeSessionId])
+  @@index([status, expiresAt])
+  @@map("orders")
+}

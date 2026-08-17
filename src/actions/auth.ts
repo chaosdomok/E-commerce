@@ -1,0 +1,103 @@
+'use server';
+
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import {
+  ensureProfile,
+  getPostAuthRedirect,
+} from '@/lib/profile';
+
+export type AuthActionState = {
+  error?: string;
+};
+
+export async function signUpWithEmail(
+  _prevState: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+
+  if (!email || !password) {
+    return { error: 'E-mail i hasło są wymagane.' };
+  }
+
+  if (password.length < 8) {
+    return { error: 'Hasło musi mieć co najmniej 8 znaków.' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data.user) {
+    await ensureProfile(supabase, data.user.id);
+    const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
+    redirect(redirectTo);
+  }
+
+  return { error: 'Sprawdź skrzynkę e-mail, aby potwierdzić konto.' };
+}
+
+export async function signInWithEmail(
+  _prevState: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+
+  if (!email || !password) {
+    return { error: 'E-mail i hasło są wymagane.' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return { error: 'Nieprawidłowy e-mail lub hasło.' };
+  }
+
+  if (data.user) {
+    await ensureProfile(supabase, data.user.id);
+    const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
+    redirect(redirectTo);
+  }
+
+  redirect('/');
+}
+
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    redirect('/login?error=oauth');
+  }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect('/');
+}

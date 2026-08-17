@@ -1,0 +1,193 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-sue: #FF7B54;
+  --color-sue-deep: #e66a45;
+  --color-sue-soft: #ffb499;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 5.5%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 5.5%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 14 100% 66%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 12%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 5% 12%;
+  --muted-foreground: 240 5% 64%;
+  --accent: 14 100% 66%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 6% 14%;
+  --input: 240 6% 14%;
+  --ring: 14 100% 66%;
+  --radius: 0.75rem;
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #ffb499;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #f8fafc;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: rgba(148, 163, 184, 0.12);
+  --sidebar-ring: rgba(255, 180, 153, 0.28);
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 5.5%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 5.5%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 14 100% 66%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 12%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 5% 12%;
+  --muted-foreground: 240 5% 64%;
+  --accent: 14 100% 66%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 6% 14%;
+  --input: 240 6% 14%;
+  --ring: 14 100% 66%;
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #ffb499;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #f8fafc;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: rgba(148, 163, 184, 0.12);
+  --sidebar-ring: rgba(255, 180, 153, 0.28);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-color: #09090b;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), system-ui, sans-serif;
+  }
+  .font-body {
+    font-family: var(--font-body), system-ui, sans-serif;
+  }
+  .glow-accent {
+    box-shadow: 0 0 40px -8px rgba(255, 123, 84, 0.45);
+  }
+  .glow-accent-sm {
+    box-shadow: 0 0 24px -10px rgba(255, 123, 84, 0.55);
+  }
+  .text-glow {
+    text-shadow: 0 0 24px rgba(255, 123, 84, 0.35);
+  }
+  .bg-grid {
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.03) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+  .animate-fade-up {
+    animation: fade-up 0.8s ease-out forwards;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 9999px;
+  border: 2px solid #09090b;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff7b54;
+}
