@@ -55,7 +55,7 @@ export async function extractBookData(
 
     // ─── 3. Call the model ────────────────────────────────────────────────
     const { object } = await generateObject({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-3.6-flash'),
       schema: bookSchema,
       messages: [
         {

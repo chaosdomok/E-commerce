@@ -7,7 +7,7 @@ import { z } from 'zod';
 export async function extractBookData(imageUrl: string) {
   try {
     const { object } = await generateObject({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-3.6-flash'),
       schema: z.object({
         title: z.string().describe('Tytuł książki'),
         author: z.string().describe('Autor książki'),
