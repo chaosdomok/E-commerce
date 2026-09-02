@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import {
   ensureProfile,
@@ -26,12 +27,17 @@ export async function signUpWithEmail(
     return { error: 'Hasło musi mieć co najmniej 8 znaków.' };
   }
 
+  const headersList = await headers();
+  const host = headersList.get('x-forwarded-host') || headersList.get('host');
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  const origin = `${protocol}://${host}`;
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   });
 
@@ -80,11 +86,16 @@ export async function signInWithEmail(
 }
 
 export async function signInWithGoogle() {
+  const headersList = await headers();
+  const host = headersList.get('x-forwarded-host') || headersList.get('host');
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  const origin = `${protocol}://${host}`;
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: `${origin}/auth/callback`,
     },
   });
 
