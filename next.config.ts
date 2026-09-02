@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // @ts-ignore: Adding allowedDevOrigins to fix HMR cross-origin block on local network
-  allowedDevOrigins: ['192.168.0.103', 'localhost', '127.0.0.1', '192.168.0.103:3000', '192.168.0.105:3000', '192.168.0.105'],
   output: 'standalone',
   experimental: {
     serverActions: {
