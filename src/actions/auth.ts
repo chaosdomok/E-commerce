@@ -30,7 +30,7 @@ export async function signUpWithEmail(
   const headersList = await headers();
   const host = headersList.get('x-forwarded-host') || headersList.get('host');
   const protocol = headersList.get('x-forwarded-proto') || 'http';
-  const origin = `${protocol}://${host}`;
+  const origin = host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -89,7 +89,7 @@ export async function signInWithGoogle() {
   const headersList = await headers();
   const host = headersList.get('x-forwarded-host') || headersList.get('host');
   const protocol = headersList.get('x-forwarded-proto') || 'http';
-  const origin = `${protocol}://${host}`;
+  const origin = host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
