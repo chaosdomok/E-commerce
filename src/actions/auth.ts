@@ -8,6 +8,27 @@ import {
   getPostAuthRedirect,
 } from '@/lib/profile';
 
+function getRequestOrigin(headersList: Headers): string {
+  const host = headersList.get('x-forwarded-host') || headersList.get('host');
+  const protocol =
+    headersList.get('x-forwarded-proto') ||
+    (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : '')
+  );
+}
+
 export type AuthActionState = {
   error?: string;
 };
@@ -28,16 +49,15 @@ export async function signUpWithEmail(
   }
 
   const headersList = await headers();
-  const host = headersList.get('x-forwarded-host') || headersList.get('host');
-  const protocol = headersList.get('x-forwarded-proto') || 'http';
-  const origin = host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const origin = getRequestOrigin(headersList);
+  const callbackUrl = origin ? `${origin}/auth/callback` : '/auth/callback';
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: callbackUrl,
     },
   });
 
@@ -87,15 +107,14 @@ export async function signInWithEmail(
 
 export async function signInWithGoogle() {
   const headersList = await headers();
-  const host = headersList.get('x-forwarded-host') || headersList.get('host');
-  const protocol = headersList.get('x-forwarded-proto') || 'http';
-  const origin = host ? `${protocol}://${host}` : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const origin = getRequestOrigin(headersList);
+  const callbackUrl = origin ? `${origin}/auth/callback` : '/auth/callback';
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: callbackUrl,
     },
   });
 

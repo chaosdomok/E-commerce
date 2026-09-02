@@ -1,9 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  allowedDevOrigins: (process.env.NEXT_PUBLIC_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/:\d+$/, ''))
+    .filter(Boolean),
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
+      allowedOrigins: (process.env.NEXT_PUBLIC_ALLOWED_ORIGINS || '')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean),
     },
   },
   images: {

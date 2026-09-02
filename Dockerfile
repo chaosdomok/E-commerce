@@ -35,6 +35,9 @@ RUN npm ci --omit=dev
 # ============================================================================
 FROM node:20-alpine AS builder
 
+ARG NEXT_PUBLIC_ALLOWED_ORIGINS
+ENV NEXT_PUBLIC_ALLOWED_ORIGINS=${NEXT_PUBLIC_ALLOWED_ORIGINS}
+
 # Install build dependencies
 RUN apk add --no-cache libc6-compat dumb-init
 
@@ -97,10 +100,10 @@ COPY --from=deps --chown=nextjs:nodejs /app/package.json ./package.json
 
 # Copy Next.js standalone output from builder
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy public assets
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Copy Prisma client and schema
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
