@@ -69,6 +69,7 @@ export async function addBookAction(
       .upload(fileName, file, { upsert: false, contentType: file.type });
 
     if (uploadError || !uploadData?.path) {
+      console.error('Upload error:', uploadError);
       return { error: 'Nie udało się wgrać okładki.' };
     }
 
@@ -93,6 +94,7 @@ export async function addBookAction(
   const { error: insertError } = await supabase.from('books').insert(payload);
 
   if (insertError) {
+    console.error('Insert book error:', insertError);
     return { error: 'Nie udało się dodać książki.' };
   }
 
@@ -141,6 +143,7 @@ export async function fulfillOrder(bookId: string): Promise<ActionResult> {
       .eq('id', bookId);
 
     if (error) {
+      console.error('Fulfill order error:', error);
       return { success: false, error: 'Nie udało się oznaczyć rezerwacji jako zrealizowana.' };
     }
 
@@ -207,6 +210,7 @@ export async function cancelReservation(bookId: string): Promise<ActionResult> {
       .eq('id', bookId);
 
     if (error) {
+      console.error('Cancel reservation error:', error);
       return { success: false, error: 'Nie udało się anulować rezerwacji.' };
     }
 

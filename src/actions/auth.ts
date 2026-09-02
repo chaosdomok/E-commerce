@@ -36,7 +36,8 @@ export async function signUpWithEmail(
   });
 
   if (error) {
-    return { error: error.message };
+    console.error('Sign up error:', error);
+    return { error: 'Nie udało się utworzyć konta. Spróbuj ponownie.' };
   }
 
   if (data.user) {

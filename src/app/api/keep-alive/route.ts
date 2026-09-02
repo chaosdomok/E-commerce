@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Keep-alive cron error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
     }
 
     return NextResponse.json({ 

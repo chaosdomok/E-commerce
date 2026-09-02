@@ -58,6 +58,7 @@ export async function completeOnboarding(
     );
 
   if (error) {
+    console.error('Onboarding error:', error);
     return { error: 'Nie udało się zapisać profilu. Spróbuj ponownie.' };
   }
 

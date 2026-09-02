@@ -31,6 +31,7 @@ export async function reserveBooks(bookIds: string[]): Promise<ReserveBooksResul
     .in('id', bookIds);
 
   if (fetchError) {
+    console.error('Fetch books error:', fetchError);
     return { success: false, error: 'Nie udało się pobrać książek.' };
   }
 
@@ -59,6 +60,7 @@ export async function reserveBooks(bookIds: string[]): Promise<ReserveBooksResul
       .select('id');
 
     if (updateError) {
+      console.error('Reserve book error:', updateError);
       return { success: false, error: 'Nie udało się zarezerwować książek.' };
     }
 
