@@ -35,11 +35,13 @@ export function TextbookGrid({ onBooksLoaded, onSearchClick }: TextbookGridProps
     async function fetchBooks() {
       try {
         const supabase = createClient();
+        console.log('Fetching books from Supabase...');
         const { data, error } = await supabase
           .from('books')
           .select('*')
           .eq('status', 'AVAILABLE');
 
+        console.log('Books fetch result:', { data, error });
         if (error) throw error;
         setBooks(data || []);
         onBooksLoaded?.(data || []);
