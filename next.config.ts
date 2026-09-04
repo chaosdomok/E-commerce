@@ -1,18 +1,28 @@
+import os from 'node:os';
 import type { NextConfig } from "next";
+
+function getLocalNetworkHosts() {
+  return Object.values(os.networkInterfaces())
+    .flatMap((interfaces) => interfaces ?? [])
+    .filter((networkInterface) => networkInterface.family === 'IPv4')
+    .map((networkInterface) => networkInterface.address);
+}
+
+const configuredOrigins = (process.env.NEXT_PUBLIC_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  allowedDevOrigins: (process.env.NEXT_PUBLIC_ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((origin) => origin.trim().replace(/:\d+$/, ''))
-    .filter(Boolean),
+  allowedDevOrigins: [
+    ...configuredOrigins.map((origin) => origin.replace(/:\d+$/, '')),
+    ...getLocalNetworkHosts(),
+  ],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
-      allowedOrigins: (process.env.NEXT_PUBLIC_ALLOWED_ORIGINS || '')
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean),
+      allowedOrigins: configuredOrigins,
     },
   },
   images: {
@@ -48,7 +58,6 @@ const nextConfig: NextConfig = {
                 "base-uri 'self'",
                 "form-action 'self'",
                 "frame-ancestors 'none'",
-                "upgrade-insecure-requests",
               ].join('; ')
             },
             {

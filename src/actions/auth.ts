@@ -110,19 +110,24 @@ export async function signInWithGoogle() {
   const origin = getRequestOrigin(headersList);
   const callbackUrl = origin ? `${origin}/auth/callback` : '/auth/callback';
 
+  console.log('Google OAuth redirect URL:', callbackUrl);
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: callbackUrl,
+      skipBrowserRedirect: false,
     },
   });
 
   if (error) {
+    console.error('Google OAuth error:', error);
     redirect('/login?error=oauth');
   }
 
   if (data.url) {
+    console.log('Redirecting to Google OAuth URL:', data.url);
     redirect(data.url);
   }
 }
