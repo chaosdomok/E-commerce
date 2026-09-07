@@ -9,15 +9,18 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
 
   console.log('Auth callback received:', requestUrl.href);
+  console.log('Auth callback headers:', Object.fromEntries(request.headers.entries()));
 
   // Dynamically get the host to ensure redirects work on local network IPs (e.g. 192.168.x.x)
   const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  console.log('Detected host from headers:', host);
+
   if (host) {
     requestUrl.host = host;
   }
 
   const origin = requestUrl.origin;
-  console.log('Auth callback origin:', origin);
+  console.log('Auth callback origin after detection:', origin);
 
   const searchParams = requestUrl.searchParams;
   const code = searchParams.get('code');
@@ -48,7 +51,7 @@ export async function GET(request: Request) {
     if (user) {
       await ensureProfile(supabase, user.id);
       const redirectTo = await getPostAuthRedirect(supabase, user.id);
-      console.log('Redirecting to:', redirectTo);
+      console.log('Redirecting to:', redirectTo, 'with origin:', origin);
       return NextResponse.redirect(`${origin}${redirectTo}`);
     }
 
