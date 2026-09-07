@@ -186,12 +186,21 @@ export function Navbar({ onSearchClick, profile: initialProfile }: NavbarProps) 
                 Ładowanie...
               </div>
             ) : isAuthenticated === false ? (
-              <Link
-                href="/login"
-                className="hidden sm:flex min-h-[44px] h-11 items-center rounded-full bg-gradient-to-br from-sue to-sue-deep px-3 sm:px-4 text-xs sm:text-sm font-bold text-white ring-2 ring-zinc-800 transition hover:ring-sue/50"
-              >
-                Zaloguj
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="hidden sm:flex min-h-[44px] h-11 items-center rounded-full bg-gradient-to-br from-sue to-sue-deep px-3 sm:px-4 text-xs sm:text-sm font-bold text-white ring-2 ring-zinc-800 transition hover:ring-sue/50"
+                >
+                  Zaloguj
+                </Link>
+                <Link
+                  href="/login"
+                  className="md:hidden flex min-h-[44px] min-w-[44px] h-11 w-11 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/60 text-zinc-300 backdrop-blur-md transition hover:border-sue/40 hover:text-sue"
+                  aria-label="Zaloguj"
+                >
+                  <User className="h-4 w-4" />
+                </Link>
+              </>
             ) : isAuthenticated === true ? (
               <>
                 {/* Desktop dropdown */}
