@@ -24,11 +24,13 @@ export async function updateSession(request: NextRequest) {
           );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) => {
-            // Set domain explicitly to work with local network IPs
+            // For local network IPs, don't set domain to avoid cookie issues
             const cookieOptions = {
               ...options,
-              // Don't set domain for local network to avoid issues
-              domain: host?.includes('localhost') ? undefined : undefined,
+              domain: undefined, // Always undefined to work with localhost and IP addresses
+              path: '/',
+              sameSite: 'lax' as const,
+              secure: process.env.NODE_ENV === 'production',
             };
             supabaseResponse.cookies.set(name, value, cookieOptions);
           });

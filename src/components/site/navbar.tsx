@@ -181,7 +181,11 @@ export function Navbar({ onSearchClick, profile: initialProfile }: NavbarProps) 
               ) : null}
             </button>
 
-            {isAuthenticated === false ? (
+            {isAuthenticated === null ? (
+              <div className="hidden sm:flex min-h-[44px] h-11 items-center rounded-full bg-zinc-800 px-3 sm:px-4 text-xs sm:text-sm font-medium text-zinc-400">
+                Ładowanie...
+              </div>
+            ) : isAuthenticated === false ? (
               <Link
                 href="/login"
                 className="hidden sm:flex min-h-[44px] h-11 items-center rounded-full bg-gradient-to-br from-sue to-sue-deep px-3 sm:px-4 text-xs sm:text-sm font-bold text-white ring-2 ring-zinc-800 transition hover:ring-sue/50"
