@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -7,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_ALLOWED_ORIGINS: ${NEXT_PUBLIC_ALLOWED_ORIGINS}
-    container_name: podręcznikowo-app
+    container_name: sue-app
     ports:
       - "3000:3000"
     environment:
@@ -29,8 +27,8 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - podręcznikowo-network
+      - sue-network
 
 networks:
-  podręcznikowo-network:
+  sue-network:
     driver: bridge
