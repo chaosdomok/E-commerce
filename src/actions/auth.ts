@@ -64,13 +64,25 @@ export async function signUpWithEmail(
 
   if (error) {
     console.error('Sign up error:', error);
-    return { error: 'Nie udało się utworzyć konta. Spróbuj ponownie.' };
+    // Return more specific error message based on error type
+    if (error.message.includes('User already registered')) {
+      return { error: 'Konto z tym e-mailem już istnieje.' };
+    }
+    if (error.message.includes('Invalid email')) {
+      return { error: 'Nieprawidłowy adres e-mail.' };
+    }
+    return { error: `Błąd: ${error.message}` };
   }
 
   if (data.user) {
-    await ensureProfile(supabase, data.user.id);
-    const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
-    return { redirect: redirectTo };
+    try {
+      await ensureProfile(supabase, data.user.id);
+      const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
+      return { redirect: redirectTo };
+    } catch (profileError) {
+      console.error('Profile creation error:', profileError);
+      return { error: 'Błąd podczas tworzenia profilu użytkownika.' };
+    }
   }
 
   return { error: 'Sprawdź skrzynkę e-mail, aby potwierdzić konto.' };
