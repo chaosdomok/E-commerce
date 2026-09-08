@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { signUpWithEmail, signInWithGoogle } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,13 @@ import {
 
 export default function SignUpPage() {
   const [state, formAction, pending] = useActionState(signUpWithEmail, {});
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.redirect) {
+      router.push(state.redirect);
+    }
+  }, [state.redirect, router]);
 
   return (
     <Card className="mx-auto w-full max-w-md border-zinc-800 bg-zinc-900/60 backdrop-blur-xl">

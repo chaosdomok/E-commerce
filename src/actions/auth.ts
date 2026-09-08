@@ -31,6 +31,7 @@ function getRequestOrigin(headersList: Headers): string {
 
 export type AuthActionState = {
   error?: string;
+  redirect?: string;
 };
 
 export async function signUpWithEmail(
@@ -69,7 +70,7 @@ export async function signUpWithEmail(
   if (data.user) {
     await ensureProfile(supabase, data.user.id);
     const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
-    redirect(redirectTo);
+    return { redirect: redirectTo };
   }
 
   return { error: 'Sprawdź skrzynkę e-mail, aby potwierdzić konto.' };
@@ -99,10 +100,10 @@ export async function signInWithEmail(
   if (data.user) {
     await ensureProfile(supabase, data.user.id);
     const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
-    redirect(redirectTo);
+    return { redirect: redirectTo };
   }
 
-  redirect('/');
+  return { redirect: '/' };
 }
 
 export async function signInWithGoogle() {
