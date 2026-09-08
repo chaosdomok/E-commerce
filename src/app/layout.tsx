@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   title: 'SUE — Giełda podręczników studenckich bez prowizji',
   description:
     'Wymieniaj, sprzedawaj i odkrywaj podręczniki bez prowizji. Stworzone dla studentów technicznych, którzy cenią cyfrową wolność.',
+  icons: {
+    icon: '/logo.svg',
+    apple: '/logo.svg',
+  },
   openGraph: {
     images: [{ url: 'https://bolt.new/static/og_default.png' }],
   },
