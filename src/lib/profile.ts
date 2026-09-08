@@ -72,6 +72,17 @@ export async function getPostAuthRedirect(
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<string> {
-  const profile = await getProfile(supabase, userId);
-  return isProfileComplete(profile) ? '/' : '/onboarding';
+  try {
+    const profile = await getProfile(supabase, userId);
+    const complete = isProfileComplete(profile);
+
+    if (!complete) {
+      return '/onboarding';
+    }
+
+    return '/';
+  } catch (error) {
+    console.error('Error in getPostAuthRedirect:', error);
+    return '/'; // Fallback to home page on error
+  }
 }

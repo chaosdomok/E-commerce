@@ -53,6 +53,8 @@ export async function signUpWithEmail(
   const origin = getRequestOrigin(headersList);
   const callbackUrl = origin ? `${origin}/auth/callback` : '/auth/callback';
 
+  console.log('Sign up attempt:', { email, origin, callbackUrl });
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -74,10 +76,13 @@ export async function signUpWithEmail(
     return { error: `Błąd: ${error.message}` };
   }
 
+  console.log('Sign up data:', { user: !!data.user, session: !!data.session });
+
   if (data.user) {
     try {
       await ensureProfile(supabase, data.user.id);
       const redirectTo = await getPostAuthRedirect(supabase, data.user.id);
+      console.log('Redirecting to:', redirectTo);
       return { redirect: redirectTo };
     } catch (profileError) {
       console.error('Profile creation error:', profileError);
@@ -85,6 +90,7 @@ export async function signUpWithEmail(
     }
   }
 
+  console.log('No user created, email confirmation required');
   return { error: 'Sprawdź skrzynkę e-mail, aby potwierdzić konto.' };
 }
 
