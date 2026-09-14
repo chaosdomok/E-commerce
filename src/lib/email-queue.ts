@@ -69,7 +69,7 @@ export async function processEmailQueue(): Promise<{ processed: number; failed: 
           to: email.to,
           subject: email.subject,
           html: email.html,
-          text: email.text,
+          text: email.text || undefined,
         });
 
         if (result.success) {
