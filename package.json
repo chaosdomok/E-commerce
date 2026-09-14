@@ -22,7 +22,6 @@
     "clean:full": "pnpm run clean && rm -rf supabase/.branches supabase/.temp supabase/logs supabase/functions/.local supabase/functions/_remote",
     "clean:deps": "rm -rf node_modules",
     "clean:build": "rm -rf .next out build .turbo"
-    "clean:build": "rm -rf .next out build .turbo"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.31",
