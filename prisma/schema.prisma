@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public"]
+}
+
+model User {
+  /// UUID supplied by Supabase Auth (`auth.users.id`).
+  id            String   @id @db.Uuid
+  email         String   @unique @db.VarChar(320)
+  role          Role     @default(USER)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  orders        Order[]
+
+  @@map("users")
+  @@schema("public")
+}
+
+model Book {
+  id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  inventoryNumber   Int        @unique @default(autoincrement()) @map("inventory_number")
+  title             String     @db.VarChar(500)
+  author            String     @db.VarChar(320)
+  price             Decimal    @db.Decimal(10, 2)
+  sellerId          String?    @map("seller_id") @db.Uuid
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  addedByAdminId    String?    @map("added_by_admin_id") @db.Uuid
+  currency          String     @default("PLN") @db.Char(3)
+  isbn              String?    @db.VarChar(17)
+  originalOwnerName String?    @map("original_owner_name") @db.VarChar(160)
+  reservedByUserId  String?    @map("reserved_by_user_id") @db.Uuid
+  reservedUntil     DateTime?  @map("reserved_until") @db.Timestamptz(6)
+  reservedByProfile Profile?   @relation("BookReservedBy", fields: [reservedByUserId], references: [id])
+  updatedAt         DateTime?  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  condition         String     @db.VarChar(50)
+  courseCode        String?    @map("course_code") @db.VarChar(200)
+  coverUrl          String?    @map("cover_url")
+  acceptedAt        DateTime?  @map("accepted_at") @db.Timestamptz(6)
+  basePrice         Decimal?   @map("base_price") @db.Decimal(10, 2)
+  reservationCode   String?    @unique @map("reservation_code") @db.VarChar(20)
+  paymentMethod     PaymentMethod? @map("payment_method")
+  payoutPaidAt      DateTime?  @map("payout_paid_at") @db.Timestamptz(6)
+  payoutPaidById    String?    @map("payout_paid_by_id") @db.Uuid
+  status            BookStatus @default(AVAILABLE)
+
+  seller            Profile?   @relation("BookSeller", fields: [sellerId], references: [id])
+  orders            Order[]
+  reservationItems  ReservationItem[]
+
+  @@index([status, reservedUntil])
+  @@index([isbn])
+  @@index([title])
+  @@index([sellerId])
+  @@index([addedByAdminId])
+  @@index([payoutPaidAt])
+  @@map("books")
+  @@schema("public")
+}
+
+model Order {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  bookId          String      @map("book_id") @db.Uuid
+  stripeSessionId String?     @map("stripe_session_id") @db.VarChar(255)
+  status          OrderStatus @default(PENDING)
+  amount          Decimal     @db.Decimal(10, 2)
+  currency        String      @default("PLN") @db.Char(3)
+  expiresAt       DateTime?   @map("expires_at") @db.Timestamptz(6)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  book            Book        @relation(fields: [bookId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@index([bookId, status])
+  @@index([stripeSessionId])
+  @@index([status, expiresAt])
+  @@map("orders")
+  @@schema("public")
+}
+
+model AllowedStudent {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(320)
+  firstName String   @map("first_name") @db.VarChar(100)
+  lastName  String   @map("last_name") @db.VarChar(100)
+  className String   @map("class_name") @db.VarChar(20)
+  isClaimed Boolean  @default(false) @map("is_claimed")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([email])
+  @@index([className])
+  @@map("allowed_students")
+  @@schema("public")
+}
+
+model Profile {
+  id              String     @id @db.Uuid
+  initials        String?    @db.VarChar(10)
+  department      String?    @db.VarChar(200)
+  reputationScore Int?       @default(0) @map("reputation_score")
+  createdAt       DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
+  class           String?    @db.VarChar(20)
+  school          String?    @db.VarChar(200)
+  fullName        String?    @map("full_name") @db.VarChar(200)
+  role            String?    @db.VarChar(20)
+  email           String?    @unique @db.VarChar(320)
+  phone           String?    @db.VarChar(20)
+  updatedAt       DateTime?  @map("updated_at") @db.Timestamptz(6)
+  accountType     String?    @map("account_type") @db.VarChar(20)
+  refundMethod    String?    @map("refund_method") @db.VarChar(50)
+  termsAccepted   Boolean    @default(false) @map("terms_accepted")
+  isBlocked       Boolean    @default(false) @map("is_blocked")
+  blockedAt       DateTime?  @map("blocked_at") @db.Timestamptz(6)
+  auditLogs       AuditLog[]
+  sellerBooks     Book[]     @relation("BookSeller")
+  reservedBooks   Book[]     @relation("BookReservedBy")
+  reservations    Reservation[]
+
+  @@index([email])
+  @@index([class])
+  @@map("profiles")
+  @@schema("public")
+}
+
+model Reservation {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String            @unique @db.VarChar(20)
+  userId        String            @map("user_id") @db.Uuid
+  reservedUntil DateTime          @map("reserved_until") @db.Timestamptz(6)
+  status        ReservationStatus @default(ACTIVE)
+  fulfillmentStatus ReservationFulfillmentStatus @default(PREPARING) @map("fulfillment_status")
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user          Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         ReservationItem[]
+
+  @@index([userId, status])
+  @@index([status, reservedUntil])
+  @@map("reservations")
+  @@schema("public")
+}
+
+model ReservationItem {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId String      @map("reservation_id") @db.Uuid
+  bookId        String      @map("book_id") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  book          Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([reservationId, bookId])
+  @@index([bookId])
+  @@map("reservation_items")
+  @@schema("public")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  /// e.g. "CREATE_LISTING", "LOGIN", "DELETE_LISTING"
+  action    String   @db.VarChar(100)
+  /// Additional context: { listingId: "...", title: "..." }
+  details   Json?
+  ipAddress String   @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      Profile? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notifications {
+  id         String   @id @db.Uuid
+  user_id    String?  @db.Uuid
+  title      String?
+  message    String?
+  read       Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model PriceMarkup {
+  id        String   @id @default(uuid()) @db.Uuid
+  minPrice  Decimal  @map("min_price") @db.Decimal(10, 2)
+  maxPrice  Decimal? @map("max_price") @db.Decimal(10, 2)
+  markup    Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("price_markups")
+  @@schema("public")
+}
+
+model SystemSetting {
+  key       String   @id @db.VarChar(100)
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("system_settings")
+  @@schema("public")
+}
+
+model IsbnBook {
+  isbn      String  @id @db.VarChar(17)
+  title     String  @db.VarChar(500)
+  author    String  @db.VarChar(320)
+  publisher String? @db.VarChar(200)
+  year      Int?
+
+  @@map("isbn_books")
+  @@schema("public")
+}
+
+model EmailQueue {
+  id          String   @id @default(uuid()) @db.Uuid
+  to          String   @db.VarChar(320)
+  subject     String   @db.VarChar(500)
+  html        String   @db.Text
+  text        String?  @db.Text
+  status      EmailStatus @default(PENDING)
+  priority    Int      @default(0)
+  attempts    Int      @default(0)
+  lastError   String?  @db.Text
+  scheduledAt DateTime @default(now()) @map("scheduled_at") @db.Timestamptz(6)
+  sentAt      DateTime? @map("sent_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, scheduledAt])
+  @@index([priority, scheduledAt])
+  @@map("email_queue")
+  @@schema("public")
+}
+
+enum Role {
+  USER
+  ADMIN
+  HEAD_ADMIN
+
+  @@schema("public")
+}
+
+enum PaymentMethod {
+  BLIK
+  CASH
+
+  @@map("payment_method")
+}
+
+enum BookCondition {
+  IDEALNY
+  JAK_NOWY @map("JAK NOWY")
+  DOBRY
+  UZYWANY  @map("UŻYWANY")
+
+  @@schema("public")
+}
+
+enum BookStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  PENDING_APPROVAL
+  REJECTED
+
+  @@schema("public")
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  COMPLETED
+
+  @@map("reservation_status")
+}
+
+enum ReservationFulfillmentStatus {
+  PREPARING
+  READY
+
+  @@map("reservation_fulfillment_status")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
+  FAILED
+
+  @@schema("public")
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  PROCESSING
+
+  @@schema("public")
+}

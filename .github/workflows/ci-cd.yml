@@ -1,0 +1,206 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '11.18.0'
+
+jobs:
+  # Security Scanning Job
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  # Build and Test Job
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm build
+
+      - name: Run unit tests
+        run: pnpm test
+        continue-on-error: true
+
+      - name: Build Docker image
+        run: |
+          docker build -t e-commerce-test:${{ github.sha }} .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'e-commerce-test:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+  # Deployment Job (only for main branch)
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://targi.postol.tech
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Build Docker image for production
+        run: |
+          docker build -t e-commerce:${{ github.sha }} .
+          docker tag e-commerce:${{ github.sha }} e-commerce:latest
+
+      - name: Save Docker image
+        run: docker save e-commerce:${{ github.sha }} | gzip > e-commerce-image.tar.gz
+
+      - name: Copy Docker image to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: 'e-commerce-image.tar.gz'
+          target: '/tmp/'
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Load Docker image
+            docker load < /tmp/e-commerce-image.tar.gz
+            
+            # Stop and remove old container
+            docker stop sue-app || true
+            docker rm sue-app || true
+            
+            # Start new container
+            docker run -d \
+              --name sue-app \
+              --restart always \
+              -p 3000:3000 \
+              --network sue-network \
+              -e NODE_ENV=production \
+              -e NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+              -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+              -e NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }} \
+              -e APP_URL=${{ secrets.APP_URL }} \
+              -e NEXT_PUBLIC_ALLOWED_ORIGINS=${{ secrets.NEXT_PUBLIC_ALLOWED_ORIGINS }} \
+              -e SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+              -e DIRECT_URL=${{ secrets.DIRECT_URL }} \
+              -e GOOGLE_GENERATIVE_AI_API_KEY=${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }} \
+              e-commerce:${{ github.sha }}
+            
+            # Cleanup
+            rm /tmp/e-commerce-image.tar.gz
+            docker image prune -f
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f https://targi.postol.tech/api/health || exit 1
+
+  # Branch Protection Job
+  branch-protection:
+    name: Enforce GitFlow Rules
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check PR target branch
+        run: |
+          if [[ "${{ github.base_ref }}" != "main" && "${{ github.base_ref }}" != "develop" ]]; then
+            echo "PR must target main or develop branch"
+            exit 1
+          fi
+
+      - name: Check for direct push to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "Direct push to main is not allowed. Use pull requests."
+          exit 1

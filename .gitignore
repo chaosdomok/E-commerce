@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.log
+*.tmp
+*.temp
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+
+# Prisma
+prisma/migrations/
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+supabase/logs/
+supabase/functions/.local/
+supabase/functions/_remote/
+
+# Data
+data/
+
+# Test files that should not be committed
+test-*.ts
+fix-*.ts
+fix-*.cjs
+extract.cjs
+apply_rls.*
+update-*.cjs
