@@ -30,21 +30,9 @@ function createPrismaClient() {
     throw new Error(`Invalid connection string format. Expected postgresql:// or postgres://, got: ${connectionString.substring(0, 20)}...`);
   }
 
-  // Try without adapter first if there are issues
-  try {
-    return new PrismaClient({
-      adapter: new PrismaPg({ connectionString }),
-    });
-  } catch (error) {
-    console.error("[PRISM] Adapter initialization failed, trying without adapter:", error);
-    return new PrismaClient({
-      datasources: {
-        db: {
-          url: connectionString,
-        },
-      },
-    });
-  }
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString }),
+  });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
