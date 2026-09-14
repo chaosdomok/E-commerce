@@ -23,15 +23,17 @@ function createPrismaClient() {
     console.log("[PRISM] Using:", directUrl ? "DIRECT_URL" : "DATABASE_URL");
     console.log("[PRISM] Connection string length:", connectionString.length);
     console.log("[PRISM] Connection string preview:", connectionString.substring(0, 20) + "...");
+    console.log("[PRISM] Connection string first char code:", connectionString.charCodeAt(0));
   }
 
-  // Validate connection string format
-  if (!connectionString.startsWith("postgresql://") && !connectionString.startsWith("postgres://")) {
-    throw new Error(`Invalid connection string format. Expected postgresql:// or postgres://, got: ${connectionString.substring(0, 20)}...`);
+  // Validate connection string format (trim whitespace first)
+  const trimmedConnectionString = connectionString.trim();
+  if (!trimmedConnectionString.startsWith("postgresql://") && !trimmedConnectionString.startsWith("postgres://")) {
+    throw new Error(`Invalid connection string format. Expected postgresql:// or postgres://, got: ${trimmedConnectionString.substring(0, 20)}...`);
   }
 
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
+    adapter: new PrismaPg({ connectionString: trimmedConnectionString }),
   });
 }
 
