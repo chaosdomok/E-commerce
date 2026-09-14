@@ -23,14 +23,21 @@ function createPrismaClient() {
   console.log("[PRISM] Connection string length:", connectionString.length);
   console.log("[PRISM] Connection string preview:", connectionString.substring(0, 20) + "...");
   console.log("[PRISM] Connection string first char code:", connectionString.charCodeAt(0));
+  console.log("[PRISM] Connection string last char code:", connectionString.charCodeAt(connectionString.length - 1));
+  console.log("[PRISM] Connection string ends with >:", connectionString.endsWith(">"));
 
   // Let Prisma handle connection string validation
   const trimmedConnectionString = connectionString.trim();
   console.log("[PRISM] Trimmed connection string length:", trimmedConnectionString.length);
   console.log("[PRISM] Trimmed connection string preview:", trimmedConnectionString.substring(0, 20) + "...");
 
+  // Remove trailing > if present (appears to be from malformed env file)
+  const cleanConnectionString = trimmedConnectionString.endsWith(">") ? trimmedConnectionString.slice(0, -1) : trimmedConnectionString;
+  console.log("[PRISM] Clean connection string length:", cleanConnectionString.length);
+  console.log("[PRISM] Clean connection string preview:", cleanConnectionString.substring(0, 20) + "...");
+
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString: trimmedConnectionString }),
+    adapter: new PrismaPg({ connectionString: cleanConnectionString }),
   });
 }
 
