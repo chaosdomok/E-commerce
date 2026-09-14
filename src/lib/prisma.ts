@@ -8,15 +8,43 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  const directUrl = process.env.DIRECT_URL;
+  const databaseUrl = process.env.DATABASE_URL;
+  const connectionString = directUrl || databaseUrl;
 
   if (!connectionString) {
     throw new Error("DATABASE_URL or DIRECT_URL is required to initialize Prisma Client.");
   }
 
-  return new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
-  });
+  // Debug logging (remove in production)
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[PRISM] DIRECT_URL exists:", !!directUrl);
+    console.log("[PRISM] DATABASE_URL exists:", !!databaseUrl);
+    console.log("[PRISM] Using:", directUrl ? "DIRECT_URL" : "DATABASE_URL");
+    console.log("[PRISM] Connection string length:", connectionString.length);
+    console.log("[PRISM] Connection string preview:", connectionString.substring(0, 20) + "...");
+  }
+
+  // Validate connection string format
+  if (!connectionString.startsWith("postgresql://") && !connectionString.startsWith("postgres://")) {
+    throw new Error(`Invalid connection string format. Expected postgresql:// or postgres://, got: ${connectionString.substring(0, 20)}...`);
+  }
+
+  // Try without adapter first if there are issues
+  try {
+    return new PrismaClient({
+      adapter: new PrismaPg({ connectionString }),
+    });
+  } catch (error) {
+    console.error("[PRISM] Adapter initialization failed, trying without adapter:", error);
+    return new PrismaClient({
+      datasources: {
+        db: {
+          url: connectionString,
+        },
+      },
+    });
+  }
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
