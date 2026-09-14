@@ -26,14 +26,9 @@ function createPrismaClient() {
     console.log("[PRISM] Connection string first char code:", connectionString.charCodeAt(0));
   }
 
-  // Validate connection string format (trim whitespace first)
-  const trimmedConnectionString = connectionString.trim();
-  if (!trimmedConnectionString.startsWith("postgresql://") && !trimmedConnectionString.startsWith("postgres://")) {
-    throw new Error(`Invalid connection string format. Expected postgresql:// or postgres://, got: ${trimmedConnectionString.substring(0, 20)}...`);
-  }
-
+  // Let Prisma handle connection string validation
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString: trimmedConnectionString }),
+    adapter: new PrismaPg({ connectionString: connectionString.trim() }),
   });
 }
 
