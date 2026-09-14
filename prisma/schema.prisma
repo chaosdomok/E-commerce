@@ -256,6 +256,7 @@ enum PaymentMethod {
   CASH
 
   @@map("payment_method")
+  @@schema("public")
 }
 
 enum BookCondition {
@@ -284,6 +285,7 @@ enum ReservationStatus {
   COMPLETED
 
   @@map("reservation_status")
+  @@schema("public")
 }
 
 enum ReservationFulfillmentStatus {
@@ -291,6 +293,7 @@ enum ReservationFulfillmentStatus {
   READY
 
   @@map("reservation_fulfillment_status")
+  @@schema("public")
 }
 
 enum OrderStatus {
